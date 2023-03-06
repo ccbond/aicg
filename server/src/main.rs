@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate rocket;
 use rocket::form::Form;
+use rocket::http::ContentType;
+use rocket::response::content::Plain;
+use rocket::response::Responder;
 use sha1::{Digest, Sha1};
 use std::env;
 
@@ -35,9 +38,16 @@ fn wechat_varify(wechat_varify: Form<WechatVarify<'_>>) -> u32 {
     let hash_str = String::from_utf8(hash_encode.into()).unwrap().as_str();
 
     if hash_str == signature {
-        return wechat_varify.echostr.parse::<u32>().unwrap();
+        let echostr = wechat_varify.echostr.parse::<u32>().unwrap();
+        HttpResponse::Ok()
+            .header(ContentType::Plain)
+            .sized_body(Cursor::new(format!("{}", echostr)))
+            .finalize()
     } else {
-        return 0;
+        HttpResponse::NotFound()
+            .header(ContentType::Plain)
+            .sized_body(Cursor::new("Verification failed"))
+            .finalize()
     }
 }
 
