@@ -1,10 +1,10 @@
 name: 'aicg'
 description: 'ChatGPT rust sdk, cli and server set'
 inputs:
-  who-to-greet:  ccbond
+  who-to-greet:
     description: 'Who to greet'
     required: true
-    default: 'World'
+    default: 'ChatGPT'
 outputs:
   time: # id of output
     description: 'The time we greeted you'
