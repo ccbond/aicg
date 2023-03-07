@@ -1,57 +1,52 @@
-#[macro_use]
-extern crate rocket;
-use rocket::form::Form;
-use rocket::http::ContentType;
-use rocket::response::content::Plain;
-use rocket::response::Responder;
-use sha1::{Digest, Sha1};
-use std::env;
+use std::{env, net::SocketAddr};
 
-#[derive(FromForm)]
-struct WechatVarify<'r> {
-    signature: &'r str,
-    timestamp: &'r str,
-    nonce: &'r str,
-    echostr: &'r str,
+use axum::{
+    extract::Form,
+    routing::get,
+    Router,
+};
+use serde::Deserialize;
+use sha1::{Digest, Sha1};
+
+#[tokio::main]
+async fn main() {
+    let app = Router::new()
+        .route("/wechat/varified", get(wechat_verified));
+
+    let addr = SocketAddr::from(([127,0,0,1], 80));
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 }
 
-#[get("/", data = "<wechat_varify>")]
-fn wechat_varify(wechat_varify: Form<WechatVarify<'_>>) -> u32 {
-    let args: Vec<String> = env::args().collect();
+#[derive(Deserialize, Debug)]
+struct WechatVerified {
+    signature: String,
+    timestamp: String,
+    nonce: String,
+    echostr: String,
+}
 
-    let signature = wechat_varify.signature;
-    let token_key = "token";
-    let token = env::var("TOKEN")
-        .expect("Failed to read TOKEN from environment variable")
-        .as_str();
-    let timestamp = wechat_varify.timestamp;
-    let nonce = wechat_varify.nonce;
-    let mut tmp_array = vec![token, timestamp, nonce];
-    tmp_array.sort();
-    let tmp_str = tmp_array.join("");
+async fn wechat_verified(Form(wechat_verified): Form<WechatVerified>) ->String {
+    let signature = wechat_verified.signature;
+    let token = env::var("TOKEN").expect("Failed to read TOKEN from environment variable");
+    let timestamp = wechat_verified.timestamp;
+    let nonce = wechat_verified.nonce;
+
+    let mut tem_arr = vec![token, timestamp, nonce];
+    tem_arr.sort();
+    let tem_str = tem_arr.join("");
 
     let mut hasher = Sha1::new();
-    hasher.update(tmp_str.as_bytes());
-
+    hasher.update(tem_str.as_bytes());
     let hash_code = hasher.finalize();
     let hash_encode = hex::encode(hash_code);
-    let hash_str = String::from_utf8(hash_encode.into()).unwrap().as_str();
+    let binding = String::from_utf8(hash_encode.into()).unwrap();
 
-    if hash_str == signature {
-        let echostr = wechat_varify.echostr.parse::<u32>().unwrap();
-        HttpResponse::Ok()
-            .header(ContentType::Plain)
-            .sized_body(Cursor::new(format!("{}", echostr)))
-            .finalize()
+    if binding.eq(&signature) {
+        wechat_verified.echostr
     } else {
-        HttpResponse::NotFound()
-            .header(ContentType::Plain)
-            .sized_body(Cursor::new("Verification failed"))
-            .finalize()
+        String::from("error")
     }
-}
-
-#[launch]
-fn rocket() -> _ {
-    rocket::build().mount("/", routes![wechat_varify])
 }
