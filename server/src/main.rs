@@ -13,7 +13,7 @@ async fn main() {
     let app = Router::new()
         .route("/wechat/varified", get(wechat_verified));
 
-    let addr = SocketAddr::from(([127,0,0,1], 3000));
+    let addr = SocketAddr::from(([127,0,0,1], 80));
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
