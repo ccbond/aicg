@@ -1,5 +1,5 @@
 [package]
-name = "aicg-server"
+name = "aicg-client"
 version = "0.1.0"
 edition = "2021"
 author = "ccbond"
@@ -14,8 +14,3 @@ description = "ChatGPT rust sdk and cli set"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = "0.6.10"
-tokio = { version = "1.26.0", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-sha1 = "0.10.5"
-hex = "0.4.3"
