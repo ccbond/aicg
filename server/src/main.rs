@@ -11,7 +11,8 @@ use sha1::{Digest, Sha1};
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/wechat/varified", get(wechat_verified));
+        .route("/wechat/varified", get(wechat_verified))
+        .route("/wechat/return", get(wechat_return));
 
     let addr = SocketAddr::from(([127,0,0,1], 80));
     axum::Server::bind(&addr)
@@ -49,4 +50,8 @@ async fn wechat_verified(Form(wechat_verified): Form<WechatVerified>) ->String {
     } else {
         String::from("error")
     }
+}
+
+async fn wechat_return(Form(wechat_verified): Form<WechatVerified>) -> String {
+    wechat_verified.echostr
 }
