@@ -14,7 +14,11 @@ description = "ChatGPT rust sdk and cli set"
 
 [dependencies]
 axum = "0.6.10"
-tokio = { version = "1.26.0", features = ["full"] }
+hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
+tower = { version = "0.4", features = ["util", "filter"] }
 sha1 = "0.10.5"
 hex = "0.4.3"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

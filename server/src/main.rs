@@ -1,21 +1,34 @@
-use std::{env, net::SocketAddr};
-
-use axum::{extract::Form, routing::get, Router};
+use axum::{extract::Form, middleware, routing::get, Router};
 use serde::Deserialize;
 use sha1::{Digest, Sha1};
+use std::{env, net::SocketAddr};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
+mod middlewares;
+
+use crate::middlewares::logging_requset_response;
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| "aigc_server=debug".into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
     let app = Router::new()
         .route("/wechat/varified", get(wechat_verified))
-        .route("/wechat/return", get(wechat_return));
+        .route("/wechat/return", get(wechat_return))
+        .layer(middleware::from_fn(logging_requset_response));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
-    println!("listening on {}", addr);
+    let addr = SocketAddr::from(([127, 0, 0, 1], 80));
+    tracing::info!("Listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
-        .unwrap();
+        .unwrap()
 }
 
 #[derive(Deserialize, Debug)]
