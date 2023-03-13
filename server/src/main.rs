@@ -10,7 +10,7 @@ async fn main() {
         .route("/wechat/varified", get(wechat_verified))
         .route("/wechat/return", get(wechat_return));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 80));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 80));
     println!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
