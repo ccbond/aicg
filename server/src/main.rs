@@ -1,10 +1,6 @@
 use std::{env, net::SocketAddr};
 
-use axum::{
-    extract::Form,
-    routing::get,
-    Router,
-};
+use axum::{extract::Form, routing::get, Router};
 use serde::Deserialize;
 use sha1::{Digest, Sha1};
 
@@ -14,7 +10,8 @@ async fn main() {
         .route("/wechat/varified", get(wechat_verified))
         .route("/wechat/return", get(wechat_return));
 
-    let addr = SocketAddr::from(([127,0,0,1], 80));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 80));
+    println!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
@@ -29,7 +26,7 @@ struct WechatVerified {
     echostr: String,
 }
 
-async fn wechat_verified(Form(wechat_verified): Form<WechatVerified>) ->String {
+async fn wechat_verified(Form(wechat_verified): Form<WechatVerified>) -> String {
     let signature = wechat_verified.signature;
     let token = env::var("TOKEN").expect("Failed to read TOKEN from environment variable");
     let timestamp = wechat_verified.timestamp;
